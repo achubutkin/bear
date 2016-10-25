@@ -1,0 +1,70 @@
+﻿@{
+    var result = new { ModelState = ModelState /* добавим состояние модели в ответ */, Redirect = false, RedirectUrl = "" };
+
+    // Если это запрос POST, проверяем и обрабатываем данные
+    if (IsAjax) {
+        AntiForgery.Validate();
+        var email = Request.Form["email"];
+        var password = Request.Form["password"];
+        var confirmPassword = Request.Form["confirmPassword"];
+
+        // Проверка символов, вводимых пользователем в ответ на запрос CAPTCHA
+        // if (!ReCaptcha.Validate("PRIVATE_KEY")) {
+        //     ModelState.AddError("recaptcha", "Неправильный ответ CAPTCHA");
+        // }
+
+        // Если все сведения указаны правильно, создается учетная запись
+        if (Validation.IsValid()) {
+            // Добавление нового пользователя в базу данных
+            var db = Database.Open("StarterSite");
+
+            // Проверка наличия пользователя в базе данных
+            var user = db.QuerySingle("SELECT Email FROM UserProfile WHERE LOWER(Email) = LOWER(@0)", email);
+            if (user == null) {
+                // Добавление адреса электронной почты в таблицу профиля
+                db.Execute("INSERT INTO UserProfile (Email) VALUES (@0)", email);
+
+                // Создание новой записи в базе данных членства.
+                // Если проверка пройдена, обработка запроса продолжается
+                try {
+                    bool requireEmailConfirmation = !WebMail.SmtpServer.IsEmpty();
+                    var token = WebSecurity.CreateAccount(email, password, requireEmailConfirmation);
+                    if (requireEmailConfirmation) {
+                        var hostUrl = Request.Url.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped);
+                        var confirmationUrl = hostUrl + VirtualPathUtility.ToAbsolute("~/Account/Confirm?confirmationCode=" + HttpUtility.UrlEncode(token));
+
+                        WebMail.Send(
+                            to: email,
+                            subject: "Подтвердите учетную запись",
+                            body: "Ваш код подтверждения:: " + token + ". Visit <a href=\"" + confirmationUrl + "\">" + confirmationUrl + "</a>  ."
+                        );
+                    }
+
+                    if (requireEmailConfirmation) {
+                        // Выражение благодарности за регистрацию и напоминание о письме, отправленном по указанному адресу
+                        result.Redirect = true;
+                        result.RedirectUrl = "/Account/Thanks";
+                    } else {
+                        // Переход на домашнюю страницу и выход
+                        WebSecurity.Login(email, password);
+
+                        result.Redirect = true;
+                        result.RedirectUrl = "/";
+                    }
+                } catch (System.Web.Security.MembershipCreateUserException e) {
+                    ModelState.AddFormError(e.Message);
+                }
+            } else {
+                // Пользователь уже существует
+                ModelState.AddFormError("Email address is already in use.");
+            }
+        }
+    }  
+    else {
+        Response.SetStatus(HttpStatusCode.BadRequest);
+        Response.End();
+    }
+
+    Response.ContentType = "application/json; charset=UTF-8"; 
+    Json.Write(result, Response.Output);
+}

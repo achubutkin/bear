@@ -1,0 +1,38 @@
+﻿@using System.Configuration;
+@using Microsoft.Web.WebPages.OAuth;
+@{
+    WebSecurity.InitializeDatabaseConnection("StarterSite", "UserProfile", "UserId", "Email", autoCreateTables: true);
+
+    // Чтобы пользователи могли входить на этот сайт, используя учетную запись с другого сайта, например Microsoft, Facebook или Twitter,
+    // следует обновить этот сайт. Дополнительные сведения: http://go.microsoft.com/fwlink/?LinkID=226949
+
+    //OAuthWebSecurity.RegisterMicrosoftClient(
+    //    clientId: "",
+    //    clientSecret: "");
+
+    //OAuthWebSecurity.RegisterTwitterClient(
+    //    consumerKey: "",
+    //    consumerSecret: "");
+
+    
+    var appSettings = ConfigurationManager.AppSettings;
+    
+    OAuthWebSecurity.RegisterFacebookClient(
+        appId: appSettings["FacebookAppId"],
+        appSecret: appSettings["FacebookAppSecret"]
+    );
+    OAuthWebSecurity.RegisterGoogleClient();
+    
+
+    WebMail.SmtpServer = appSettings["WebMailSmtpServer"];
+
+    var enableSsl = false;
+    Boolean.TryParse(appSettings["WebMailEnableSsl"], out enableSsl);
+
+    WebMail.EnableSsl = enableSsl;
+    WebMail.UserName = appSettings["WebMailUserName"];
+    WebMail.Password = appSettings["WebMailPassword"];
+    WebMail.From = appSettings["WebMailFrom"];
+
+    // Сведения об оптимизации скриптов и таблиц стилей на сайте см. по адресу http://go.microsoft.com/fwlink/?LinkID=248973
+}
