@@ -1,6 +1,10 @@
-﻿@{
-    WebSecurity.InitializeDatabaseConnection("StarterSite", "UserProfile", "UserId", "Email", autoCreateTables: true);
+﻿@using System.Web.Optimization;
+@using Bear;
 
+@{
+    BundleConfig.RegisterBundles(BundleTable.Bundles);
+    AuthConfig.RegisterAuth();
+    
     // Чтобы пользователи могли входить на этот сайт, используя учетную запись с другого сайта, например Microsoft, Facebook или Twitter,
     // следует обновить этот сайт. Дополнительные сведения: http://go.microsoft.com/fwlink/?LinkID=226949
 
