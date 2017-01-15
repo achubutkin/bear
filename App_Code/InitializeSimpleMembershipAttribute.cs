@@ -33,12 +33,6 @@ namespace Bear
                         {
                             // Создание базы данных SimpleMembership без схемы миграции Entity Framework
                             ((IObjectContextAdapter)context).ObjectContext.CreateDatabase();
-
-                            /*
-                                Обновление от 13.01.2017 chubutkin.a (нач.)
-                                Изменить поле "Email" на "UserName" (!)
-                                Обновление (кон.)
-                            */
                         }
                     }
 
