@@ -1,7 +1,13 @@
-﻿@* Удалите этот раздел при использовании пакетного режима *@
+﻿@using Microsoft.Web.Helpers;
+
+@* Удалите этот раздел при использовании пакетного режима *@
 @section Scripts {
     <script src="~/Scripts/jquery.validate.min.js"></script>
     <script src="~/Scripts/jquery.validate.unobtrusive.min.js"></script>
+}
+
+@section Header {
+    <script src='https://www.google.com/recaptcha/api.js'></script>
 }
 
 @{
@@ -32,9 +38,9 @@
         confirmPassword = Request.Form["confirmPassword"];
 
         // Проверка символов, вводимых пользователем в ответ на запрос CAPTCHA
-        // if (!ReCaptcha.Validate("PRIVATE_KEY")) {
-        //     ModelState.AddError("recaptcha", "Неправильный ответ CAPTCHA");
-        // }
+        if (!ReCaptcha.Validate("6LdNxcwSAAAAAE233FClj9oTkE2LR5cgCMINUC5r")) {
+             ModelState.AddError("recaptcha", "Неправильный ответ CAPTCHA");
+        }
 
         // Если все сведения указаны правильно, создается учетная запись
         if (Validation.IsValid()) {
@@ -124,10 +130,9 @@
                         Зарегистрируйте ключи reCAPTCHA на сайте <a href="http://recaptcha.net">reCAPTCHA.net</a>.
                     </p>
                 </div>
-                @*
-                @ReCaptcha.GetHtml("PUBLIC_KEY", theme: "white")
+                
+                @ReCaptcha.GetHtml("6LdNxcwSAAAAAO6ITPy4AlEzMOx4Sk4VrMHp8gKn", theme: "white")
                 @Html.ValidationMessage("recaptcha")
-                *@
             </li>
         </ol>
         <input type="submit" value="Регистрация" />
